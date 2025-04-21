@@ -1,62 +1,62 @@
 [
   {
-    "label": "T5",
-    "dev": "charlie",
+    "label": "T7",
+    "dev": "alice",
     "start": 0,
-    "end": 4
-  },
-  {
-    "label": "T6",
-    "dev": "charlie",
-    "start": 4,
-    "end": 10
-  },
-  {
-    "label": "T9",
-    "dev": "charlie",
-    "start": 10,
-    "end": 15
+    "end": 6
   },
   {
     "label": "T8",
     "dev": "charlie",
-    "start": 15,
-    "end": 23
+    "start": 6,
+    "end": 14
+  },
+  {
+    "label": "T6",
+    "dev": "diana",
+    "start": 0,
+    "end": 6
+  },
+  {
+    "label": "T10",
+    "dev": "bob",
+    "start": 0,
+    "end": 4
+  },
+  {
+    "label": "T9",
+    "dev": "charlie",
+    "start": 14,
+    "end": 19
   },
   {
     "label": "T1",
-    "dev": "charlie",
-    "start": 23,
-    "end": 31
+    "dev": "bob",
+    "start": 4,
+    "end": 12
   },
   {
     "label": "T4",
     "dev": "charlie",
-    "start": 31,
-    "end": 39
+    "start": 19,
+    "end": 27
   },
   {
-    "label": "T7",
-    "dev": "charlie",
-    "start": 39,
-    "end": 45
+    "label": "T2",
+    "dev": "alice",
+    "start": 6,
+    "end": 16
   },
   {
     "label": "T3",
     "dev": "charlie",
-    "start": 45,
-    "end": 51
+    "start": 27,
+    "end": 33
   },
   {
-    "label": "T2",
-    "dev": "charlie",
-    "start": 51,
-    "end": 61
-  },
-  {
-    "label": "T10",
-    "dev": "charlie",
-    "start": 61,
-    "end": 65
+    "label": "T5",
+    "dev": "bob",
+    "start": 12,
+    "end": 16
   }
 ]

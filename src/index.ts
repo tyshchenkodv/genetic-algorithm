@@ -49,12 +49,15 @@ export async function geneticSchedule(tasks: Task[], devs: Dev[]) {
 
     for (let g = 0; g < GENERATIONS; g++) {
         pop = nextGeneration(pop, tasks, devs);
+
         const best = Math.min(...pop.map(ch => fitness(ch, tasks, devs)));
+
         history.push({ generation: g, best });
         console.log(`Gen ${g}: best F = ${best.toFixed(2)}`);
     }
 
     const champion = pop.reduce((a, b) => fitness(a, tasks, devs) < fitness(b, tasks, devs) ? a : b);
+
     return { schedule: decode(champion, tasks, devs), history };
 }
 
@@ -63,13 +66,16 @@ export async function geneticSchedule(tasks: Task[], devs: Dev[]) {
 if (process.argv.length > 2 && import.meta.url === `file://${process.argv[1]}`) {
     (async () => {
         const [tasksFile, devsFile] = process.argv.slice(2);
+
         if (!tasksFile || !devsFile) {
             console.error("Usage: ts-node gaScheduler.ts tasks.json devs.json");
             process.exit(1);
         }
+
         const tasks: Task[] = JSON.parse(await fs.readFile(tasksFile, "utf-8"));
         const devs: Dev[] = JSON.parse(await fs.readFile(devsFile, "utf-8"));
         const { schedule, history } = await geneticSchedule(tasks, devs);
+
         await fs.writeFile("schedule.json", JSON.stringify(schedule, null, 2));
         await fs.writeFile("log.json", JSON.stringify(history, null, 2));
         console.log("Done. Files saved: schedule.json, log.json");
@@ -80,11 +86,15 @@ if (process.argv.length > 2 && import.meta.url === `file://${process.argv[1]}`) 
 
 function nextGeneration(pop: Chromosome[], tasks: Task[], devs: Dev[]): Chromosome[] {
     const offspring: Chromosome[] = [];
+
     while (offspring.length < POP_SIZE) {
         const parents: [Chromosome, Chromosome] = [tournament(pop, tasks, devs), tournament(pop, tasks, devs)];
         let [c1, c2] = Math.random() < PC ? crossover(parents[0], parents[1]) : [parents[0].slice(), parents[1].slice()];
+
         if (Math.random() < PM) c1 = mutate(c1, tasks, devs);
+
         if (Math.random() < PM) c2 = mutate(c2, tasks, devs);
+
         offspring.push(c1, c2);
     }
     return offspring.slice(0, POP_SIZE);
@@ -92,6 +102,7 @@ function nextGeneration(pop: Chromosome[], tasks: Task[], devs: Dev[]): Chromoso
 
 function tournament(pop: Chromosome[], tasks: Task[], devs: Dev[]): Chromosome {
     const [a, b] = [pop[randomInt(pop.length)], pop[randomInt(pop.length)]];
+
     return fitness(a, tasks, devs) < fitness(b, tasks, devs) ? a : b;
 }
 
@@ -100,6 +111,7 @@ function tournament(pop: Chromosome[], tasks: Task[], devs: Dev[]): Chromosome {
 function randomChrom(tasks: Task[], devs: Dev[]): Chromosome {
     return tasks.map(t => {
         const pool = devs.filter(d => t.skills.every(s => d.skills.includes(s)));
+
         return { taskId: t.id, devId: pool[randomInt(pool.length)].id };
     });
 }
@@ -119,11 +131,15 @@ function decode(ch: Chromosome, tasks: Task[], devs: Dev[]): Schedule {
     ch.forEach(g => {
         const t = byId[g.taskId];
         let est = t.deps ? Math.max(...t.deps.map(x => done[x] ?? 0)) : 0;
+
         est = Math.max(est, devFree[g.devId]);
+
         const start = est, end = start + t.dur;
+
         devFree[g.devId] = end; done[t.id] = end;
         sched.push({ label: t.id, dev: g.devId, start, end });
     });
+
     return sched;
 }
 
@@ -131,16 +147,45 @@ function fitness(ch: Chromosome, tasks: Task[], devs: Dev[]): number {
     const sch = decode(ch, tasks, devs);
     const byLabel = Object.fromEntries(sch.map(s => [s.label, s]));
     const cmax = Math.max(...sch.map(s => s.end));
-    const cost = sch.reduce((sum, s) => sum + (devs.find(d => d.id === s.dev)!.rate * (s.end - s.start)), 0);
+    const cost = sch.reduce((sum, s) => {
+        const dev = devs.find(d => d.id === s.dev)!;
+        return sum + dev.rate * (s.end - s.start);
+    }, 0);
+
     const loadMap: Record<string, number> = {};
+
     sch.forEach(s => loadMap[s.dev] = (loadMap[s.dev] ?? 0) + (s.end - s.start));
+
     const loads = Object.values(loadMap);
     const mean = loads.reduce((a, b) => a + b, 0) / loads.length;
-    const std = Math.sqrt(loads.reduce((acc, l) => acc + (l - mean) ** 2, 0) / loads.length);
+    const std  = Math.sqrt(loads.reduce((acc, l) => acc + (l - mean) ** 2, 0) / loads.length);
+
     let penalty = 0;
-    tasks.forEach(t => { if (byLabel[t.id].end > t.deadline) penalty += (byLabel[t.id].end - t.deadline) * t.weight * 10; });
+
+    /* Hard‑skills */
+    sch.forEach(s => {
+        const task = tasks.find(t => t.id === s.label)!;
+        const dev  = devs.find(d => d.id === s.dev)!;
+        if (!task.skills.every(req => dev.skills.includes(req)))
+            penalty += 1_000_000;           // несумісна особина
+    });
+
+    /* Перевищення годин */
+    devs.forEach(d => {
+        const used = loadMap[d.id] ?? 0;
+        if (used > d.hoursAvail)
+            penalty += 50_000 * (used - d.hoursAvail);
+    });
+
+    /* Дедлайни */
+    tasks.forEach(t => {
+        if (byLabel[t.id].end > t.deadline)
+            penalty += (byLabel[t.id].end - t.deadline) * t.weight * 10;
+    });
+
     return W.time * cmax + W.cost * cost + W.load * std + penalty;
 }
+
 
 /* -------------------  Crossover (Order + Uniform dev) -------------------- */
 
@@ -161,10 +206,13 @@ function crossover(p1: Chromosome, p2: Chromosome): [Chromosome, Chromosome] {
     let k1 = b, k2 = b;
     for (let i = 0; i < n; i++) {
         const geneP2 = p2[i];
+
         if (!child1.some(g => g?.taskId === geneP2.taskId)) {
             child1[k1 % n] = { ...geneP2 }; k1++;
         }
+
         const geneP1 = p1[i];
+
         if (!child2.some(g => g?.taskId === geneP1.taskId)) {
             child2[k2 % n] = { ...geneP1 }; k2++;
         }
@@ -174,6 +222,7 @@ function crossover(p1: Chromosome, p2: Chromosome): [Chromosome, Chromosome] {
     for (let i = a; i < b; i++) {
         if (Math.random() < 0.5) [child1[i].devId, child2[i].devId] = [child2[i].devId, child1[i].devId];
     }
+
     return [child1, child2];
 }
 
@@ -181,17 +230,21 @@ function crossover(p1: Chromosome, p2: Chromosome): [Chromosome, Chromosome] {
 
 function mutate(ch: Chromosome, tasks: Task[], devs: Dev[]): Chromosome {
     const c = ch.map(g => ({ ...g }));
+
     if (Math.random() < 0.5) {
         // swap two genes (task order)
         const [i, j] = [randomInt(c.length), randomInt(c.length)];
+
         [c[i], c[j]] = [c[j], c[i]];
     } else {
         // reassign dev for one random task
         const i = randomInt(c.length);
         const task = tasks.find(t => t.id === c[i].taskId)!;
         const pool = devs.filter(d => task.skills.every(s => d.skills.includes(s)));
+
         c[i].devId = pool[randomInt(pool.length)].id;
     }
+
     return c;
 }
 
@@ -199,8 +252,10 @@ function mutate(ch: Chromosome, tasks: Task[], devs: Dev[]): Chromosome {
 
 function validate(tasks: Task[], devs: Dev[]) {
     const ids = new Set(tasks.map(t => t.id));
+
     tasks.forEach(t => {
         t.deps?.forEach(dep => { if (!ids.has(dep)) throw new Error(`Unknown dependency ${dep}`); });
+
         if (!devs.some(d => t.skills.every(s => d.skills.includes(s))))
             throw new Error(`No compatible dev for task ${t.id}`);
     });

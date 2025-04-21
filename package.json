@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --loader ts-node/esm src/index.ts src/tasks.json src/devs.json"
+    "start": "node --loader ts-node/esm src/index.ts src/tasks.json src/devs.json",
+    "serve:charts": "http-server . -p 8080",
+    "open:charts": "npx wait-on http://localhost:8080 && npx open-cli http://localhost:8080/src/charts.html",
+    "start:charts": "concurrently -k -s first -n SERVER,BROWSER \"npm run serve:charts\" \"npm run open:charts && tail -f /dev/null\""
   },
   "repository": {
     "type": "git",
@@ -20,7 +23,12 @@
   "homepage": "https://github.com/tyshchenkodv/genetic-algorithm#readme",
   "devDependencies": {
     "@types/node": "^22.14.1",
+    "concurrently": "^9.1.2",
+    "http-server": "^14.1.1",
+    "open-cli": "^8.0.0",
+    "start-server-and-test": "^2.0.11",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wait-on": "^8.0.3"
   }
 }

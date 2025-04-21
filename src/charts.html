@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <title>Демо‑графіки алгоритму розподілу завдань</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-xy@4/dist/chartjs-chart-xy.min.js"></script>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 20px;
+      background: #fefefe;
+    }
+    h2 {
+      margin-top: 40px;
+    }
+    canvas {
+      width: 1200px !important;
+      height: 600px !important;
+      display: block;
+      margin: 40px auto;
+    }
+  </style>
+</head>
+<body>
+<h1>Демонстраційні графіки роботи генетичного алгоритму</h1>
+
+<p>Ці графіки створені на основі даних з файлів <code>log.json</code> та <code>schedule.json</code></p>
+
+<canvas id="chartConv" width="1200" height="450"></canvas>
+<canvas id="chartGantt" width="1200" height="550"></canvas>
+
+<script>
+  (async function() {
+    function getRandomColor() {
+      var letters = '0123456789ABCDEF';
+      var color = '#';
+      for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    async function loadJSON(path) {
+      const res = await fetch(path);
+
+      return await res.json();
+    }
+
+    const convergence = await loadJSON('../log.json');
+
+    const chartConv = document.getElementById('chartConv');
+    chartConv.width = 1200;
+    chartConv.height = 600;
+    new Chart(chartConv, {
+      type: 'line',
+      data: {
+        labels: convergence.map(p => p.generation),
+        datasets: [{
+          label: 'Найкраще значення функції',
+          data: convergence.map(p => p.best),
+          tension: 0.25,
+          fill: false,
+          pointRadius: 3,
+        }]
+      },
+      options: {
+        plugins: {title: {display: true, text: 'Конвергенція алгоритму'}},
+        scales: {
+          x: {title: {display: true, text: 'Покоління'}},
+          y: {title: {display: true, text: 'Значення цільової функції'}, beginAtZero: false}
+        }
+      }
+    });
+
+    const tasks = await fetch("../schedule.json").then(r=>r.json());
+
+    const devList = [...new Set(tasks.map(t => t.dev))];
+
+    console.log(JSON.stringify(tasks), devList);
+
+    const datasets = devList.map((dev, i) => ({
+      label: dev,
+      data: tasks
+              .filter(t => t.dev === dev)
+              .map(t => ({
+                taskName: t.label,
+                x: [t.start, t.end],
+                y: dev,
+                backgroundColor: getRandomColor(),
+              })),
+      backgroundColor: ctx => ctx.raw.backgroundColor,
+    }));
+
+    new Chart(document.getElementById('chartGantt'), {
+      type: 'bar',
+      data: { datasets },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        scales: {
+          x: {
+            stacked: true,
+            title: { display: true, text: 'Години проєкту' },
+            ticks: { stepSize: 2 }
+          },
+          y: {
+            stacked: true,
+            type: 'category',
+            title: { display: true, text: 'Розробник' }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            callbacks: {
+              title: ctx => ctx?.[0]?.raw?.taskName,
+              label: ctx => {
+                const [x1, x2] = ctx.raw.x;
+                return `${x1}–${x2} год`;
+              }
+            }
+          },
+          title: {
+            display: true,
+            text: 'Gantt-діаграма виконання завдань'
+          }
+        }
+      }
+    });
+  })()
+</script>
+</body>
+</html>
