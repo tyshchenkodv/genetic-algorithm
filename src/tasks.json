@@ -1,0 +1,77 @@
+[
+  {
+    "id": "T1",
+    "dur": 8,
+    "deadline": 1751011200000,
+    "skills": ["node", "sql"],
+    "weight": 3
+  },
+  {
+    "id": "T2",
+    "dur": 10,
+    "deadline": 1751097600000,
+    "skills": ["react", "ts"],
+    "weight": 2
+  },
+  {
+    "id": "T3",
+    "dur": 6,
+    "deadline": 1750924800000,
+    "skills": ["sql"],
+    "weight": 3
+  },
+  {
+    "id": "T4",
+    "dur": 8,
+    "deadline": 1751184000000,
+    "skills": ["js", "qa"],
+    "weight": 1
+  },
+  {
+    "id": "T5",
+    "dur": 4,
+    "deadline": 1751097600000,
+    "skills": ["docker"],
+    "weight": 2,
+    "deps": ["T1"]
+  },
+  {
+    "id": "T6",
+    "dur": 6,
+    "deadline": 1751184000000,
+    "skills": ["nosql", "node"],
+    "weight": 2,
+    "deps": ["T1"]
+  },
+  {
+    "id": "T7",
+    "dur": 6,
+    "deadline": 1751270400000,
+    "skills": ["react", "js"],
+    "weight": 3,
+    "deps": ["T1", "T2"]
+  },
+  {
+    "id": "T8",
+    "dur": 8,
+    "deadline": 1751356800000,
+    "skills": ["qa", "js"],
+    "weight": 2,
+    "deps": ["T4", "T7"]
+  },
+  {
+    "id": "T9",
+    "dur": 5,
+    "deadline": 1751356800000,
+    "skills": ["js"],
+    "weight": 1
+  },
+  {
+    "id": "T10",
+    "dur": 4,
+    "deadline": 1751356800000,
+    "skills": ["docker", "node"],
+    "weight": 2,
+    "deps": ["T5"]
+  }
+]

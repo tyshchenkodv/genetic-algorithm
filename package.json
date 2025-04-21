@@ -1,0 +1,26 @@
+{
+  "name": "genetic-algorithm",
+  "version": "1.0.0",
+  "description": "Genetic Algorithm Scheduler",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --loader ts-node/esm src/index.ts src/tasks.json src/devs.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tyshchenkodv/genetic-algorithm.git"
+  },
+  "author": "Tyshchenko Dmytro",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tyshchenkodv/genetic-algorithm/issues"
+  },
+  "homepage": "https://github.com/tyshchenkodv/genetic-algorithm#readme",
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}

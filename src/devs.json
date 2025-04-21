@@ -1,0 +1,26 @@
+[
+  {
+    "id": "alice",
+    "rate": 30,
+    "hoursAvail": 40,
+    "skills": ["js", "react", "ts"]
+  },
+  {
+    "id": "bob",
+    "rate": 35,
+    "hoursAvail": 40,
+    "skills": ["node", "js", "sql", "docker"]
+  },
+  {
+    "id": "charlie",
+    "rate": 25,
+    "hoursAvail": 40,
+    "skills": ["qa", "js", "sql"]
+  },
+  {
+    "id": "diana",
+    "rate": 40,
+    "hoursAvail": 40,
+    "skills": ["node", "react", "ts", "nosql", "docker"]
+  }
+]
